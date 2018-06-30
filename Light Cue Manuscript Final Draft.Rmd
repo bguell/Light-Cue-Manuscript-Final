@@ -155,7 +155,7 @@ summary(glht(rana, linfct=mcp(treatment="Tukey")))
 
 In order to do this, we will need to "wrangle" our data a bit first:
 ```{r}
-photopattern
+head(photopattern)
 library(dplyr) #allows for data manipulation
 k= photopattern %>%
   group_by(treatment, time, age) #group percentage/proportion hatched data by age colum to summarize by data!
@@ -531,7 +531,7 @@ leveneTest(data=photo_light, age~treatment)
 
 ## **EARLY HATCHING in DARK treatment** 
 ```{r}
-photopattern
+head(photopattern)
 early = photopattern %>%
   group_by(treatment) %>%
   filter(age == 5.75)
@@ -606,7 +606,7 @@ dunnTest(data=early, percentage~as.factor(treatment), method = "bh")
 ## **HATCHING after day 6 (LATE hatching in LIGHT treatment)** 
 
 ```{r}
-photopattern
+head(photopattern)
 delay = photopattern %>%
   group_by(treatment) %>%
   filter(time == 42) %>%
