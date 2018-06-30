@@ -2,10 +2,12 @@
 title: "Light Cue Manuscript Statistics Overview"
 author: "Brandon Güell"
 date: "11/11/2017"
-output: 
+output:
+  pdf_document:
+    toc: yes
   html_document:
-    toc: true
-    toc_float: true
+    toc: yes
+    toc_float: yes
 ---
 
 > The statistical analysis shown here are from the Guüell & Warkentin light cue manuscript Analysis are shows in chronological order as reported in the manuscript. I show details on importing, manipulating, summarizing, analyzing, and visualizing the data. See manuscript for details on background, research questions, hypothesis, methods, etc.
