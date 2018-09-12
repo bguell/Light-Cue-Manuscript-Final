@@ -198,11 +198,24 @@ g1
 library(ggplot2)
 library(scales)
 
-legend_title="Light \ntreatment"
+```
 
-g1=ggplot(photopattern, aes(x=age, y=percentage)) + #add the axis
-  geom_boxplot(aes(group=age, fill=treatment)) #make lines different colors... these are lines drawn b/t  the means, then make lines thicker... size="must be outside of aes"
-g1
+### 3 panel figure
+```{r}
+
+
+g=ggplot(photopattern, aes(x=age, y=percentage)) + #add the axis
+  geom_boxplot(aes(group=age, fill=treatment)) + #make lines different colors... these are lines drawn b/t  the means, then make lines thicker... size="must be outside of aes"
+  labs(y="Mean proportion hatched", x="Age (days)") + #creat labels... 
+  theme_classic(base_size=21) +
+  theme(panel.background = element_rect(colour = "black", size=1), legend.position="right", axis.text.x = element_text(color="black"), axis.text.y = element_text(color="black")) +
+  scale_x_continuous(breaks= pretty_breaks(n=6)) + # allows for making "pretty" breaks on x axis... only showing 4 and 5 values...
+  scale_y_continuous(breaks= pretty_breaks(n=6)) + # allows for making "pretty" breaks on y axis... shows 5 breaks
+  scale_color_manual(legend_title, values = c("black", "darkorange", "darkgreen")) +
+  scale_fill_manual(guide = FALSE, values = c("black", "darkorange", "darkgreen")) +
+  facet_grid(treatment~.)# remove title for shading colors...
+g
+
 ```
 
 
