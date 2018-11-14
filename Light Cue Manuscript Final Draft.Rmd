@@ -194,28 +194,27 @@ g1=ggplot(k, aes(x=age, y=mean)) + #add the axis
   geom_rect(aes(xmin = 6.75, xmax = 7.25, 
             ymin = -Inf, ymax = Inf), alpha = 0.009)
 g1
-
-library(ggplot2)
-library(scales)
-
 ```
 
 ### 3 panel figure
 ```{r}
+library(ggplot2)
+library(scales)
+library(dplyr)
 
-
+levels(photopattern$treatment)
+levels(photopattern$treatment) <- c("", "Constant dark", "Constant light", "12L:12D\nphotoperiod")
 g=ggplot(photopattern, aes(x=age, y=percentage)) + #add the axis
   geom_boxplot(aes(group=age, fill=treatment)) + #make lines different colors... these are lines drawn b/t  the means, then make lines thicker... size="must be outside of aes"
-  labs(y="Mean proportion hatched", x="Age (days)") + #creat labels... 
-  theme_classic(base_size=21) +
+  labs(y="Proportion hatched", x="Age (days)") + #creat labels... 
+  theme_classic(base_size=20) +
   theme(panel.background = element_rect(colour = "black", size=1), legend.position="right", axis.text.x = element_text(color="black"), axis.text.y = element_text(color="black")) +
   scale_x_continuous(breaks= pretty_breaks(n=6)) + # allows for making "pretty" breaks on x axis... only showing 4 and 5 values...
   scale_y_continuous(breaks= pretty_breaks(n=6)) + # allows for making "pretty" breaks on y axis... shows 5 breaks
-  scale_color_manual(legend_title, values = c("black", "darkorange", "darkgreen")) +
-  scale_fill_manual(guide = FALSE, values = c("black", "darkorange", "darkgreen")) +
-  facet_grid(treatment~.)# remove title for shading colors...
+  scale_color_manual(legend_title, values = c("gray40", "darkorange", "darkgreen")) +
+  scale_fill_manual(guide = FALSE, values = c("gray40", "darkorange", "darkgreen")) +
+  facet_grid(treatment~.) # remove title for shading colors...
 g
-
 ```
 
 
@@ -299,29 +298,29 @@ dunnTest(data=onset, age~as.factor(treatment), method = "bh")
 
 
 *FIFTY PERCENT*
-#```{r}
+```{r}
 library(dplyr)
 fiftypercent = photopattern %>%
   group_by(clutch, treatment) %>%
   filter(percentage >= .50) %>% # get first hatching
-  filter(percentage == min(percentage) & age == min(age)) %>% #get only first hatching per clutch and teratment
   dplyr::select(clutch, treatment, age, time, percentage) %>%
-  arrange(clutch, treatment)
+  arrange(clutch, treatment) %>%
+  filter(percentage == min(percentage) & age == min(age)) #get only first hatching per clutch and teratment
 fiftypercent
 
 
-fiftypercent_summary = completion %>%
+fiftypercent_summary = fiftypercent %>%
   group_by(treatment) %>%
   summarise(mean_fiftypercent_age = mean(age), SE= sd(age)/sqrt(length(age)), sample_size=n())
 fiftypercent_summary
 
 ```
 
->  Embryos in the dark, light, and photoperiod treatments reached hatching completion at  6.06, 6.47, and 5.91 days respectively.
+>  Embryos in the dark, light, and photoperiod treatments reached 50% hatching completion at  5.72, 5.87, and 5.73 days respectively.
 
 Stats:
-#```{r}
-m=lm(data=completion, age~treatment)
+```{r}
+m=lm(data=fiftypercent, age~treatment)
 summary(m)
 
 library(car)
@@ -332,41 +331,41 @@ summary(aov(m))
 #post hoc
 TukeyHSD(aov(m))
 ```
-* F value == 5.6635;  df= 2,30
-* overall treatment **p-value** == 0.008191 ***
+* F value == 0.922;  df= 2,30
+* overall treatment **p-value** == 0.409 **NS**
 
-* light-dark **p-value** == 0.0609168 **NS**
-* photo-dark **p-value** == 0.6573500 **NS**
-* photo-light **p-value** == 0.0077221 ***
+* light-dark **p-value** == 0.4436152 **NS**
+* photo-dark **p-value** == 0.9916588 **NS**
+* photo-light **p-value** == 0.5157742 **NS**
 
 Check for normality
-#```{r}
+```{r}
 plot(fitted(m), residuals(m))
 hist(residuals(m))
 qqnorm(residuals(m))
 shapiro.test(m$residuals)
 ```
-* shapiro test **p-value** == 0.03655
+
+* shapiro test **p-value** == 0.04747
 
 ** NOT normally dist**
 
 non-parametric tests
-#```{r}
+```{r}
 library(FSA)
-kwt=kruskal.test(data=completion, age~as.factor(treatment))
+kwt=kruskal.test(data=fiftypercent, age~as.factor(treatment))
 kwt
 
-dunnTest(data=completion, age~as.factor(treatment), method = "bh")
+dunnTest(data=fiftypercent, age~as.factor(treatment), method = "bh")
 ```
-* X^2 == 11.133
-* overall treatment **p-value** == 0.003824 **NS**
+* X^2 == 0.93053
+* overall treatment **p-value** == 0.628 **NS**
 
-* light-dark **p-value** == 0.055745483 **NS**
-* photo-dark **p-value** == 0.224474574 **NS**
-* photo-light **p-value** == 0.002914246 ***
+* light-dark **p-value** == 0.8756973 **NS**
+* photo-dark **p-value** == 0.6791092 **NS**
+* photo-light **p-value** == 1.0000000 **NS**
 
-> interpretation: embryos in photoperiod reach hatching completion before those in light treatment but not differently than those in dark.
-
+> interpretation: embryos all reach 50% at the same age
 
 
 *COMPLETION*
@@ -507,6 +506,9 @@ mpeak
 ```
 
 ```{r}
+levels(photopattern$treatment)
+levels(photopattern$treatment) <- c("", "dark", "light", "photoperiod")
+
 library(ggplot2)
 legend_title="Light \ntreatment" #make legend title here
 
@@ -514,12 +516,12 @@ g = ggplot(data=mpeak, aes(x= treatment, y= mean_diff)) +
   geom_point(aes(color= treatment), size= 3) + 
   geom_errorbar(aes(ymin=mean_diff-SE, ymax=mean_diff+SE, color = treatment), width= .4, size= 1) +
   labs(y="Proportion hatched\nbetween 5.67-5.83 days", x="Light treatment") +
-  scale_y_continuous(limits=c(0,0.85),oob = rescale_none, breaks= pretty_breaks(n=4)) +
-  scale_x_discrete(limits= c("dark", "light", "photoperiod")) + # put the x axis stuff in order that I want.
+  scale_y_continuous(limits=c(0,0.85), oob = rescale_none, breaks= pretty_breaks(n=4)) +
   scale_color_manual(legend_title,values = c("black", "darkorange", "darkgreen")) +
   geom_text(aes(y = c(0.23, 0.3, 0.8), label = c("a", "a", "b")), position = position_dodge(width = .8), color= "black", vjust = 0, size = 7) +
   theme_classic(base_size = 21) +
   theme(panel.background = element_rect(colour = "black", size=1), legend.position="none", axis.text.x = element_text(color="black"), axis.text.y = element_text(color="black"))
+
 g
 ```
 
@@ -965,20 +967,21 @@ phototaxis <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = TRUE)
 head(phototaxis)
 ```
 
-*****
 
 ## 4d Hatching Complications Analysis
 
 ### Open water whole clutch vs natural surface area extremes 25% and 50%
 
 ```{r}
-prop.test(x=182, n=205, p=.025)
+prop.test(x=182, n=189, p=.025)
 ```
+* **X^2** == 6783.2
 * **p-value**  < 2.2e-16
 
 ```{r}
-prop.test(x=182, n=205, p=.050)
+prop.test(x=182, n=189, p=.050)
 ```
+* **X^2** == 3297.3
 * **p-value**  < 2.2e-16
 
 
@@ -987,15 +990,17 @@ prop.test(x=182, n=205, p=.050)
 ### Jelly whole clutch vs open water individual cup
 Two Sided:
 ```{r}
-prop.test(x=6,n=21,p=.034)
+prop.test(x=6,n=21,p=.032)
 ```
-* **p-value** == 8.272e-09
+* **X^2** == 35.834
+* **p-value** == 2.149e-09
 
 
 One Sided:
 ```{r}
-prop.test(x=6,n=21,p=.034, alternative = "greater")
+prop.test(x=6,n=21,p=.032, alternative = "greater")
 ```
+* **X^2** == 33.21
 * **p-value** == 4.136e-09
 
 *****
@@ -1008,24 +1013,28 @@ Control experiment
 ```{r}
 prop.test(9,20)
 ```
+* **X^2** == 0.05
 * **p-value** == 0.8231
 
 Iteration 1: First set of trials:
 ```{r}
 prop.test(30,45)
 ```
+* **X^2** == 4.3556
 * **p-value** == 0.03689
 
 Iteration 2: Second set of trials:
 ```{r}
 prop.test(29,40)
 ```
+* **X^2** == 7.225
 * **p-value** == 0.00719
 
 Comparison of two trials:
 ```{r}
 prop.test(x=c(29,40), n=c(30,45))
 ```
+* **X^2** == 0.61141
 * **p-value** == 0.4343
 
 Since the two sets are data are not significantly different from each other, I've pooled the data and run the test on the whole combined set...
@@ -1034,6 +1043,7 @@ Pooled analysis:
 ```{r}
 prop.test(59,85)
 ```
+* **X^2** == 12.047
 * **p-value** == 0.0005187
 
 *****
@@ -1048,7 +1058,7 @@ phototaxis$Hatching.direction = as.factor(phototaxis$Hatching.direction)
 phototaxis$test.number = as.character(phototaxis$test.number)
 
 #the models:
-p1=glmer(Hatching.direction ~ Position.Entered + (1|clutch), data=phototaxis, family="binomial")
+p1=glmer(Hatching.direction ~  Position.Entered + (1|clutch), data=phototaxis, family="binomial")
 summary(p1)
 
 # make a second, simpler model without our variable of interest:
